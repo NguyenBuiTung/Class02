@@ -48,17 +48,34 @@ namespace api.Controllers
 
             var sheeps = await query.ToListAsync();
 
-            // Chuyển đổi dữ liệu thành DTO nếu cần
-            var result = sheeps.Select(s => new SheepDto
+            // Tính tổng số lượng cừu theo màu sắc
+            // Tính tổng số lượng cừu, MeatWeight và WoolWeight theo màu sắc
+            var sheepCountByColor = sheeps
+                .GroupBy(s => s.Color.ToLower())
+                .Select(g => new
+                {
+                    Color = g.Key,
+                    Count = g.Count(),
+                    TotalMeatWeight = g.Sum(s => s.MeatWeight),
+                    TotalWoolWeight = g.Sum(s => s.WoolWeight)
+                }).ToList();
+
+            // Tạo đối tượng chứa kết quả trả về
+            var result = new
             {
-                Color = s.Color,
-                MeatWeight = s.MeatWeight,
-                WoolWeight = s.WoolWeight,
-                Time = s.Time
-            }).ToList();
+                Sheeps = sheeps.Select(s => new SheepDto
+                {
+                    Color = s.Color,
+                    MeatWeight = s.MeatWeight,
+                    WoolWeight = s.WoolWeight,
+                    Time = s.Time
+                }).ToList(),
+                SheepCountByColor = sheepCountByColor
+            };
 
             return Ok(result);
         }
+
 
 
         // [HttpGet("report-by-color")]

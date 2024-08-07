@@ -12,6 +12,9 @@ import {
   ResponsiveContainer,
   Line,
   Area,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts";
 
 export default function ReportTime() {
@@ -33,7 +36,7 @@ export default function ReportTime() {
           },
         }
       );
-    //   console.log(response);
+      //   console.log(response);
       setOrders(response.data);
       setLoading(false);
     } catch (error) {
@@ -44,7 +47,7 @@ export default function ReportTime() {
     }
   };
   useEffect(() => {
-    const dataNew = orders?.map((items, index) => {
+    const dataNew = orders?.sheeps?.map((items, index) => {
       return {
         key: index,
         color: items.color,
@@ -67,7 +70,45 @@ export default function ReportTime() {
     });
     setDataChart(newData);
   }, [data]);
+  const [pieChart, setPiechart] = useState([]);
+  useEffect(() => {
+    const dataNew = orders?.sheepCountByColor?.map((item) => {
+      return {
+        color: item?.color,
+        value: item.totalMeatWeight,
+      };
+    });
 
+    setPiechart(dataNew);
+  }, [orders]);
+  const RADIAN = Math.PI / 180;
+  const COLORS = ["#f0f0f0", "#bfbfbf", "#000"];
+
+  const renderCustomizedLabel = ({
+    cx,
+    cy,
+    midAngle,
+    innerRadius,
+    outerRadius,
+    percent,
+  }) => {
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+    const x = cx + (radius + 25) * Math.cos(-midAngle * RADIAN);
+    const y = cy + (radius + 25) * Math.sin(-midAngle * RADIAN);
+
+    return (
+      <text
+        x={x}
+        y={y}
+        fill="#f5222d"
+        textAnchor="middle" // Căn giữa theo trục x
+        dominantBaseline="middle" // Căn giữa theo trục y
+        fontSize={15}
+      >
+        {`${(percent * 100).toFixed(0)}%`}
+      </text>
+    );
+  };
   const columns = [
     {
       title: "STT",
@@ -119,7 +160,8 @@ export default function ReportTime() {
           max={5}
           style={{ marginRight: "10px", width: "200px" }}
         />
-        <Select placeholder="màu sắc"
+        <Select
+          placeholder="màu sắc"
           style={{ width: "200px", marginRight: "10px" }}
           onChange={(value) => setColor(value)}
         >
@@ -180,6 +222,40 @@ export default function ReportTime() {
             <Legend />
             <Bar barSize={15} dataKey="Trọng lượng" fill="#413ea0" />
           </ComposedChart>
+        </ResponsiveContainer>
+      </div>
+      <div style={{ width: "100%", height: 300,margin:"20px 0" }}>
+        <ResponsiveContainer>
+          <PieChart>
+            <Pie
+              data={pieChart}
+              cx="50%"
+              cy="50%"
+              labelLine={false}
+              label={renderCustomizedLabel}
+              outerRadius={130}
+              fill="#8884d8"
+              dataKey="value"
+            >
+              {pieChart?.map((entry, index) => (
+                <Cell
+                  key={`cell-${index}`}
+                  fill={COLORS[index % COLORS.length]}
+                />
+              ))}
+            </Pie>
+            <Tooltip formatter={(value) => value.toLocaleString() + " kg trọng lượng"} />
+            <Legend
+              verticalAlign="middle"
+              align="left"
+              layout="vertical"
+              payload={pieChart?.map((entry, index) => ({
+                value: entry.color,
+                type: "square",
+                color: COLORS[index],
+              }))}
+            />
+          </PieChart>
         </ResponsiveContainer>
       </div>
 
