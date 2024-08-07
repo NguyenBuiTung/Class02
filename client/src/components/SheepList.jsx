@@ -2,7 +2,6 @@ import axios from "axios";
 import { useState } from "react";
 import { useEffect } from "react";
 import {
-  Button,
   Col,
   Flex,
   Form,
@@ -13,7 +12,7 @@ import {
   Tooltip,
 } from "antd";
 import AddSheep from "./AddSheep";
-import { DeleteOutlined, EditOutlined, SyncOutlined } from "@ant-design/icons";
+import { DeleteOutlined, SyncOutlined } from "@ant-design/icons";
 import EditOrder from "./EditOrder";
 import SheepRun from "./SheepRun";
 export default function SheepList() {
@@ -21,34 +20,49 @@ export default function SheepList() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState([]);
-  const [editingKey, setEditingKey] = useState("");
-  const isEditing = (record) => record.orderId === editingKey;
-  const edit = (record) => {
-    form.setFieldsValue({
-      ...record,
-    });
-    console.log(record)
-    setEditingKey(record.orderId);
-  };
-  const cancel = () => {
-    setEditingKey("");
-  };
-
+  // const [editingKey, setEditingKey] = useState("");
+  // const isEditing = (record) => record.orderId === editingKey;
+  // const edit = (record) => {
+  //   form.setFieldsValue({
+  //     ...record,
+  //   });
+  //   console.log(record)
+  //   setEditingKey(record.orderId);
+  // };
+  // const cancel = () => {
+  //   setEditingKey("");
+  // };
+  const token = localStorage.getItem("token");
   useEffect(() => {
-    const fetchSheeps = async () => {
+    const fetchOrders = async () => {
       try {
+        // Lấy token từ localStorage
+
+        // Gửi yêu cầu GET với Bearer token trong header
         const response = await axios.get(
-          "http://localhost:5218/api/Order/get-orders"
+          "http://localhost:5218/api/Order/get-orders",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
+        console.log(response);
+        // Cập nhật dữ liệu nhận được
         setOrders(response.data);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        if (error.response && error.response.status === 401) {
+          // Xử lý khi token không hợp lệ (có thể redirect đến trang đăng nhập)
+          console.error("Unauthorized: Please log in again.");
+        } else {
+          console.error("Error fetching data:", error);
+        }
       } finally {
-        setLoading(false); // Set loading to false when request completes
+        setLoading(false); // Đặt loading thành false khi yêu cầu hoàn tất
       }
     };
 
-    fetchSheeps();
+    fetchOrders();
   }, []);
   useEffect(() => {
     const dataNew = orders?.map((items, index) => {
@@ -63,7 +77,12 @@ export default function SheepList() {
   const handleDelete = async (record) => {
     try {
       const response = await axios.delete(
-        `http://localhost:5218/api/Order/delete-order/${record.orderId}`
+        `http://localhost:5218/api/Order/delete-order/${record.orderId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
 
       setOrders(response.data);
@@ -110,37 +129,38 @@ export default function SheepList() {
   const [progress, setProgress] = useState(0); // For the progress bar
   const [intervalId, setIntervalId] = useState(null); // To manage the interval
   const transition = async (id) => {
-   setLoadRun(true)
-   setProgress(0); // Reset progress bar
-   setCurrentSheep(null); // Clear previous sheep info
+    setLoadRun(true);
+    setProgress(0); // Reset progress bar
+    setCurrentSheep(null); // Clear previous sheep info
     try {
       const response = await axios.post(
         `http://localhost:5218/api/Order/process-transaction/${id}`,
         {
-          orderId:id
+          orderId: id,
         },
         {
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
         }
       );
       const data = response.data;
 
-     // Update progress bar with an interval
-     let currentIndex = 0;
-     const interval = setInterval(() => {
-         if (currentIndex < data.length) {
-             setCurrentSheep(data[currentIndex]);
-             setProgress(((currentIndex + 1) / data.length) * 100);
-             currentIndex++;
-         } else {
-             clearInterval(interval);
-             setLoading(false);
-         }
-     }, 1000); // Update every second
+      // Update progress bar with an interval
+      let currentIndex = 0;
+      const interval = setInterval(() => {
+        if (currentIndex < data.length) {
+          setCurrentSheep(data[currentIndex]);
+          setProgress(((currentIndex + 1) / data.length) * 100);
+          currentIndex++;
+        } else {
+          clearInterval(interval);
+          setLoading(false);
+        }
+      }, 1000); // Update every second
 
-     setIntervalId(interval);
+      setIntervalId(interval);
     } catch (error) {
       console.error("Error processing transaction:", error);
       alert("Failed to process transaction");
@@ -151,8 +171,8 @@ export default function SheepList() {
   useEffect(() => {
     // Clean up interval on unmount
     return () => clearInterval(intervalId);
-}, [intervalId]);
-// console.log(currentSheep)
+  }, [intervalId]);
+  // console.log(currentSheep)
   const columns = [
     {
       title: "Id Đơn hàng",
@@ -176,27 +196,25 @@ export default function SheepList() {
         // const editable = isEditing(record);
         return (
           <Flex align="center" gap={10} justify="space-evenly">
-          <Tooltip placement="top" title="Xóa đơn hàng">
-                  <Popconfirm
-                    placement="leftTop"
-                    title="Bạn có chắc chắn?"
-                    onConfirm={() => handleDelete(record)}
-                    okText="Xóa"
-                    cancelText="Hủy"
-                  >
-                    <DeleteOutlined
-                      style={{ color: "#f5222d", fontSize: 20 }}
-                    />
-                  </Popconfirm>
-                </Tooltip>
-                <Tooltip placement="top" title="Giao dịch">
-                  <SyncOutlined
-                    onClick={() => {
-                      transition(record.orderId);
-                    }}
-                    style={{ color: "blue", fontSize: 20 }}
-                  />
-                </Tooltip>
+            <Tooltip placement="top" title="Xóa đơn hàng">
+              <Popconfirm
+                placement="leftTop"
+                title="Bạn có chắc chắn?"
+                onConfirm={() => handleDelete(record)}
+                okText="Xóa"
+                cancelText="Hủy"
+              >
+                <DeleteOutlined style={{ color: "#f5222d", fontSize: 20 }} />
+              </Popconfirm>
+            </Tooltip>
+            <Tooltip placement="top" title="Giao dịch">
+              <SyncOutlined
+                onClick={() => {
+                  transition(record.orderId);
+                }}
+                style={{ color: "blue", fontSize: 20 }}
+              />
+            </Tooltip>
           </Flex>
         );
       },
@@ -212,7 +230,7 @@ export default function SheepList() {
         record,
         dataIndex: col.dataIndex,
         title: col.title,
-        editing: isEditing(record),
+        // editing: isEditing(record),
       }),
     };
   });
@@ -238,7 +256,11 @@ export default function SheepList() {
             />
           </Col>
           <Col span={12}>
-           <SheepRun loadRun={loadRun} currentSheep={currentSheep} progress={progress}/>
+            <SheepRun
+              loadRun={loadRun}
+              currentSheep={currentSheep}
+              progress={progress}
+            />
           </Col>
         </Row>
       </Form>

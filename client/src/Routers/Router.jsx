@@ -7,23 +7,23 @@ import { createBrowserHistory } from "history";
 import Body from "../components/Body";
 import SheepList from "../components/SheepList";
 import ReportTime from "../components/ReportTime";
+import CheckLogin from "../components/CheckLogin";
+import Login from "../components/Login";
 
 const history = createBrowserHistory();
 export default function Router() {
   return (
-    <HistoryRouter history={history}>   
+    <HistoryRouter history={history}>
       <Routes>
-        <Route path="">
+        <Route path="" element={<CheckLogin/>} >
           <Route path="" element={<Body />}>
-            <Route index element={<ReportTime/>} />
+            <Route index element={<ReportTime />} />
             <Route path="/order" element={<SheepList />} />
           </Route>
         </Route>
-        {/* <Route path="" element={<CheckLogin />}>
-        <Route path="/login" element={<Login />} />
-        <Route path="/forgot-password" element={<ForgotPassWord />} />
-        <Route path="/reset-password" element={<ResetPassWord />} />
-      </Route> */}
+        <Route >
+          <Route path="/login" element={<Login />} />
+        </Route>
       </Routes>
     </HistoryRouter>
   );

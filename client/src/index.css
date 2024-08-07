@@ -34,6 +34,53 @@ h1 {
   line-height: 1.1;
 }
 
+login {
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  height: 100vh;
+  background-color: #eaf0fa;
+}
+.login .box-login {
+  display: flex;
+  align-items: center;
+  height: 100vh;
+}
+.login .box-login .box-login-container {
+  width: 450px;
+  background-color: #fff;
+  margin: auto;
+  border-radius: 14px;
+}
+@media (max-width: 450px) {
+  .login .box-login .box-login-container {
+    width: 300px;
+  }
+}
+.login .box-login .box-login-container .login-box {
+  padding: 30px 30px 90px;
+}
+.login .box-login .box-login-container .login-box .title {
+  text-align: center;
+}
+.login .box-login .box-login-container .login-box .title h2 {
+  font-size: 24px;
+  font-weight: 500;
+}
+@media (max-width: 450px) {
+  .login .box-login .box-login-container .login-box .title h2 {
+    font-size: 14px;
+  }
+}
+.login .box-login .box-login-container .login-box .form-login {
+  margin-top: 35px;
+}
+.login .box-login .box-login-container .login-box .form-login .ant-input {
+  padding: 7px;
+}
+.login .box-login .box-login-container .login-box .form-login .ant-input-number-input-wrap {
+  padding: 7px;
+}
 
 
 

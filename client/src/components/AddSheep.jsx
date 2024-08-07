@@ -6,6 +6,7 @@ export default function AddSheep({setOrders}) {
   const [form] = Form.useForm();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState();
+  const token = localStorage.getItem("token");
   const showModal = () => {
     setIsModalOpen(true);
   };
@@ -21,6 +22,7 @@ export default function AddSheep({setOrders}) {
         {
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
         }
       );

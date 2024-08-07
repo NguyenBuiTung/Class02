@@ -21,11 +21,17 @@ export default function ReportTime() {
   const [timestart, setTimestart] = useState("");
   const [timeend, setTimeend] = useState("");
   const [color, setColor] = useState("all");
+  const token = localStorage.getItem("token");
   const fetchSheeps = async () => {
     setLoading(true); // Set loading to true when making request
     try {
       const response = await axios.get(
-        `http://localhost:5218/report-by-time?startTime=${timestart}&endTime=${timeend}&color=${color}`
+        `http://localhost:5218/report-by-time?startTime=${timestart}&endTime=${timeend}&color=${color}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
     //   console.log(response);
       setOrders(response.data);
