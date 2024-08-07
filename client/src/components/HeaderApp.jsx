@@ -1,3 +1,4 @@
+import { LogoutOutlined } from "@ant-design/icons";
 import { Button } from "antd";
 
 export default function HeaderApp() {
@@ -6,8 +7,8 @@ export default function HeaderApp() {
     window.location.href ="/login"
   }
   return (
-    <div>
-      <Button type="primary" danger onClick={sigout}>Đăng xuất </Button>
+    <div style={{textAlign:"end",width:"100%"}}>
+      <Button type="primary" danger onClick={sigout} icon={<LogoutOutlined/>}>Đăng xuất </Button>
     </div>
   );
 }

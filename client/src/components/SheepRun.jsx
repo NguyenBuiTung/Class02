@@ -1,8 +1,7 @@
 export default function SheepRun({ loadRun, progress, currentSheep }) {
   return (
     <div>
-      {loadRun && (
-        <div className="progress-container">
+    <div className="progress-container">
           <div
             className={`progress-bar ${loadRun ? "active" : ""}`}
             style={{ width: `${progress}%` }}
@@ -16,7 +15,7 @@ export default function SheepRun({ loadRun, progress, currentSheep }) {
                     ? "black"
                     : currentSheep?.color === "Trắng"
                     ? "#fff"
-                    : "red"
+                    : "#fff"
                 } `,
               }}
               className="sheep"
@@ -36,7 +35,6 @@ export default function SheepRun({ loadRun, progress, currentSheep }) {
             </div>
           </div>
         </div>
-      )}
 
       {currentSheep && (
         <div>
