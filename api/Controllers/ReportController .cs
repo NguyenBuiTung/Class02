@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using api.Data;
 using api.DTOs;
 using api.Interfaces;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,6 +25,7 @@ namespace api.Controllers
         }
 
         [HttpGet("report-by-time")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<ActionResult> ReportByTime(
       [FromQuery] int? startTime = null, // Thời gian là tham số tùy chọn
       [FromQuery] int? endTime = null, // Thời gian là tham số tùy chọn
@@ -74,6 +77,7 @@ namespace api.Controllers
         // }
 
         [HttpGet("export-sheep")]
+        // [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<IActionResult> ExportSheepToExcel()
         {
             var sheeps = await _sheepRepository.GetAllSheepAsync();

@@ -147,3 +147,11 @@ D:\PMGSCuu\api\obj\Debug\net8.0\refint\api.dll
 D:\PMGSCuu\api\obj\Debug\net8.0\api.pdb
 D:\PMGSCuu\api\obj\Debug\net8.0\api.genruntimeconfig.cache
 D:\PMGSCuu\api\obj\Debug\net8.0\ref\api.dll
+D:\PMGSCuu\api\bin\Debug\net8.0\Microsoft.AspNetCore.Cryptography.Internal.dll
+D:\PMGSCuu\api\bin\Debug\net8.0\Microsoft.AspNetCore.Cryptography.KeyDerivation.dll
+D:\PMGSCuu\api\bin\Debug\net8.0\Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll
+D:\PMGSCuu\api\bin\Debug\net8.0\Microsoft.Extensions.Identity.Core.dll
+D:\PMGSCuu\api\bin\Debug\net8.0\Microsoft.Extensions.Identity.Stores.dll
+D:\PMGSCuu\api\bin\Debug\net8.0\Microsoft.Extensions.Options.dll
+D:\PMGSCuu\api\obj\Debug\net8.0\api.sourcelink.json
+D:\PMGSCuu\api\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll

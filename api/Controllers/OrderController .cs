@@ -6,14 +6,17 @@ using api.DTOs;
 using api.Interfaces;
 using api.Models;
 using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Mvc;
+// using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers
 {
     [Microsoft.AspNetCore.Mvc.Route("api/[controller]")]
     [ApiController]
-    public class OrderController : ControllerBase
+    public class OrderController : Controller
     {
         private readonly IOrderRepository _orderRepository;
         private readonly ISheepRepository _sheepRepository;
@@ -28,6 +31,7 @@ namespace api.Controllers
         }
 
         [HttpGet("get-orders")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<ActionResult<IEnumerable<GetOrderDtos>>> GetOrders()
         {
             var orders = await _orderRepository.GetOrdersAsync();
@@ -39,6 +43,7 @@ namespace api.Controllers
             return Ok(orderDtos);
         }
         [HttpPost("create-order")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<ActionResult<IEnumerable<GetOrderDtos>>> CreateOrder(OrderDto orderDto)
         {
             // Create a new order
@@ -91,6 +96,7 @@ namespace api.Controllers
 
 
         [HttpDelete("delete-order/{id}")]
+         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<ActionResult<IEnumerable<GetOrderDtos>>> DeleteOrder(int id)
         {
             var existingOrder = await _orderRepository.GetOrderByIdAsync(id);
@@ -116,6 +122,7 @@ namespace api.Controllers
 
 
         [HttpPost("process-transaction/{orderId}")]
+         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<ActionResult> ProcessTransaction(int orderId)
         {
             // Lấy thông tin đơn hàng từ repository
