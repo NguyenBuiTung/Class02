@@ -56,7 +56,6 @@ public class AccountController : ControllerBase
             return BadRequest(ModelState);
 
         var user = await _userManager.Users.FirstOrDefaultAsync(x => x.UserName == model.Username.ToLower());
-        Console.WriteLine(user);
         if (user == null)
             return Unauthorized("Invalid username!");
 

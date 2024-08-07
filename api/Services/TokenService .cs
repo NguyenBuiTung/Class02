@@ -11,7 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace api.Services
 {
-   public class TokenService : ITokenService
+    public class TokenService : ITokenService
     {
         private readonly IConfiguration _config;
         private readonly SymmetricSecurityKey _key;
@@ -25,6 +25,7 @@ namespace api.Services
         {
             var claims = new List<Claim>
             {
+                   new Claim(JwtRegisteredClaimNames.Sub, user.Id), 
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
                 new Claim(JwtRegisteredClaimNames.GivenName, user.UserName)
             };
