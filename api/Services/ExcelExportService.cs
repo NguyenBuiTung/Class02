@@ -48,6 +48,9 @@ namespace api.Services
                         worksheet.Cells[i + 2, 3].Value = sheep.WoolWeight;
                         worksheet.Cells[i + 2, 4].Value = sheep.Time;
                     }
+
+                    // Tự động điều chỉnh kích thước cột để phù hợp với nội dung
+                    worksheet.Cells.AutoFitColumns();
                 }
 
                 return await Task.FromResult(package.GetAsByteArray());

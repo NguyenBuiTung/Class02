@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
@@ -43,7 +44,7 @@ namespace api.Controllers
                 UserName = user.UserName,
                 Email = user.Email
             };
-
+         
             return Ok(userDto);
         }
 

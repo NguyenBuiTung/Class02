@@ -1,5 +1,5 @@
 import { Button, InputNumber, Select, Table } from "antd";
-import axios from "axios";
+import axios from 'axios';
 import { useEffect, useState } from "react";
 import {
   ComposedChart,
@@ -136,11 +136,28 @@ export default function ReportTime() {
     },
   ];
   const handleExcel = async () => {
-    try {
-      window.location.href = `http://localhost:5218/export-sheep`;
-    } catch (error) {
-      console.log(error);
-    }
+     // Its important to set the 'Content-Type': 'blob' and responseType:'arraybuffer'.
+     const headers = {'Content-Type': 'blob', Authorization: `Bearer ${token}`};
+     const config = {method: 'GET', url: "http://localhost:5218/export-sheep", responseType: 'arraybuffer', headers};
+     
+     try {
+         const response = await axios(config);
+         
+         const outputFilename = `Báo cáo.xls`;
+ 
+         // If you want to download file automatically using link attribute.
+         const url = URL.createObjectURL(new Blob([response.data]));
+         const link = document.createElement('a');
+         link.href = url;
+         link.setAttribute('download', outputFilename);
+         document.body.appendChild(link);
+         link.click();
+ 
+         // OR you can save/write file locally.
+        //  fs.writeFileSync(outputFilename, response.data);
+     } catch (error) {
+         throw Error(error);
+     }
   };
 
   return (
@@ -224,7 +241,7 @@ export default function ReportTime() {
           </ComposedChart>
         </ResponsiveContainer>
       </div>
-      <div style={{ width: "100%", height: 300,margin:"20px 0" }}>
+      <div style={{ width: "100%", height: 300, margin: "20px 0" }}>
         <ResponsiveContainer>
           <PieChart>
             <Pie
@@ -244,7 +261,9 @@ export default function ReportTime() {
                 />
               ))}
             </Pie>
-            <Tooltip formatter={(value) => value.toLocaleString() + " kg trọng lượng"} />
+            <Tooltip
+              formatter={(value) => value.toLocaleString() + " kg trọng lượng"}
+            />
             <Legend
               verticalAlign="middle"
               align="left"

@@ -51,5 +51,10 @@ namespace api.Repositories
             _context.Sheeps.Add(sheep);
             await _context.SaveChangesAsync();
         }
+
+        public async Task<List<Sheep>> GetSheepByUserIdAsync(string userId)
+        {
+          return await _context.Sheeps.Where(o => o.UserId == userId).ToListAsync();
+        }
     }
 }

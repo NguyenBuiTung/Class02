@@ -111,7 +111,16 @@ namespace api.Controllers
         // [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<IActionResult> ExportSheepToExcel()
         {
-            var sheeps = await _sheepRepository.GetAllSheepAsync();
+            var userId = User.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.NameId)?.Value
+                       ?? User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            // Kiểm tra nếu không tìm thấy UserId
+            if (userId == null)
+            {
+                return Unauthorized("User ID claim not found");
+            }
+            var sheeps = await _sheepRepository.GetSheepByUserIdAsync(userId);
+            // return Ok(sheeps);
             var fileContent = await _excelExportService.ExportSheepToExcel(sheeps);
             return File(fileContent, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Sheeps.xlsx");
         }
