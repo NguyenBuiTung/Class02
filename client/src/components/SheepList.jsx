@@ -249,7 +249,7 @@ export default function SheepList() {
       <h2>Danh sách đơn đặt hàng</h2>
       <AddSheep setOrders={setOrders} />
       <Form form={form} component={false}>
-        <Row gutter={[16, 16]}>
+        <Row gutter={[32, 32]}>
           <Col span={12}>
             <Table
               components={{

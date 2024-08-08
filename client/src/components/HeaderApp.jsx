@@ -1,5 +1,5 @@
 import { LogoutOutlined } from "@ant-design/icons";
-import { Button, Typography } from "antd";
+import { Button, Flex, Typography } from "antd";
 import axios from "axios";
 import { useEffect, useState } from "react";
 
@@ -43,13 +43,16 @@ export default function HeaderApp() {
     fetchData();
   }, []);
   return (
-    <div style={{ width: "100%", textAlign: "end" }}>
-      {!loading && <Typography.Text style={{ marginRight: 5 }}>
+    <Flex style={{width:"100%"}} justify="space-between" align="center">
+      <img style={{width:"90px"}} src="https://haiphong.work/wp-content/uploads/2022/06/image_bao-an_230622-022032.png" alt="" />
+    <div>
+    {!loading && <Typography.Text style={{ marginRight: 5 }}>
         Xin chào  <strong style={{fontSize:16}}>{user?.userName}</strong>
       </Typography.Text>}
       <Button type="primary" danger onClick={sigout} icon={<LogoutOutlined />}>
         Đăng xuất{" "}
       </Button>
     </div>
+    </Flex>
   );
 }
