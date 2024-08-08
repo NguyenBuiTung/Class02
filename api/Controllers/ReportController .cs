@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using api.Data;
 using api.DTOs;
@@ -27,11 +29,24 @@ namespace api.Controllers
         [HttpGet("report-by-time")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<ActionResult> ReportByTime(
-      [FromQuery] int? startTime = null, // Thời gian là tham số tùy chọn
-      [FromQuery] int? endTime = null, // Thời gian là tham số tùy chọn
-      [FromQuery] string color = "all")
+     [FromQuery] int? startTime = null, // Thời gian là tham số tùy chọn
+     [FromQuery] int? endTime = null, // Thời gian là tham số tùy chọn
+     [FromQuery] string color = "all")
         {
+            // Trích xuất UserId từ các claims của JWT
+            var userId = User.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.NameId)?.Value
+                         ?? User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            // Kiểm tra nếu không tìm thấy UserId
+            if (userId == null)
+            {
+                return Unauthorized("User ID claim not found");
+            }
+
             var query = _context.Sheeps.AsQueryable();
+
+            // Lọc theo UserId
+            query = query.Where(s => s.UserId == userId);
 
             // Lọc theo thời gian nếu các tham số được cung cấp
             if (startTime.HasValue && endTime.HasValue)
@@ -48,7 +63,6 @@ namespace api.Controllers
 
             var sheeps = await query.ToListAsync();
 
-            // Tính tổng số lượng cừu theo màu sắc
             // Tính tổng số lượng cừu, MeatWeight và WoolWeight theo màu sắc
             var sheepCountByColor = sheeps
                 .GroupBy(s => s.Color.ToLower())

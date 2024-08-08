@@ -9,6 +9,7 @@ namespace api.Models
     {
         public int OrderId { get; set; }
         public int OrderQuantity { get; set; }
-        public ICollection<Sheep> Sheeps { get; set; } // Danh sách các con cừu thuộc về đơn hàng
+        public ICollection<Sheep> Sheeps { get; set; } 
+         public string UserId { get; set; } // Danh sách các con cừu thuộc về đơn hàng
     }
 }

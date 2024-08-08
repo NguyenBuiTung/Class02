@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using api.DTOs;
 using api.Interfaces;
@@ -34,29 +36,48 @@ namespace api.Controllers
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<ActionResult<IEnumerable<GetOrderDtos>>> GetOrders()
         {
-            var orders = await _orderRepository.GetOrdersAsync();
+            var userId = User.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.NameId)?.Value
+                         ?? User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            if (userId == null)
+            {
+                return Unauthorized("User ID claim not found");
+            }
+
+            var orders = await _orderRepository.GetOrdersByUserIdAsync(userId);
+
             var orderDtos = orders.Select(order => new GetOrderDtos
             {
                 OrderId = order.OrderId,
                 OrderQuantity = order.OrderQuantity
             }).ToList();
+
             return Ok(orderDtos);
         }
         [HttpPost("create-order")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<ActionResult<IEnumerable<GetOrderDtos>>> CreateOrder(OrderDto orderDto)
         {
-            // Create a new order
+            var userId = User.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.NameId)?.Value
+                         ?? User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            if (userId == null)
+            {
+                return Unauthorized("User ID claim not found");
+            }
+
+            // Create a new order and associate it with the user
             var order = new Order
             {
-                OrderQuantity = orderDto.OrderQuantity
+                OrderQuantity = orderDto.OrderQuantity,
+                UserId = userId  // Ensure this property exists
             };
 
             // Add the new order to the database
             await _orderRepository.AddOrderAsync(order);
 
-            // Retrieve the updated list of orders
-            var orders = await _orderRepository.GetOrdersAsync();
+            // Retrieve the updated list of orders for the user
+            var orders = await _orderRepository.GetOrdersByUserIdAsync(userId);
             var orderDtos = orders.Select(o => new GetOrderDtos
             {
                 OrderId = o.OrderId,
@@ -68,48 +89,63 @@ namespace api.Controllers
         }
 
 
-        [HttpPut("update-order/{id}")]
-        public async Task<ActionResult<IEnumerable<GetOrderDtos>>> UpdateOrder(int id, OrderDto orderDto)
-        {
-            var existingOrder = await _orderRepository.GetOrderByIdAsync(id);
-            if (existingOrder == null)
-            {
-                return NotFound();
-            }
 
-            // Update the order
-            existingOrder.OrderQuantity = orderDto.OrderQuantity;
-            await _orderRepository.UpdateOrderAsync(existingOrder);
+        // [HttpPut("update-order/{id}")]
+        // public async Task<ActionResult<IEnumerable<GetOrderDtos>>> UpdateOrder(int id, OrderDto orderDto)
+        // {
+        //     var existingOrder = await _orderRepository.GetOrderByIdAsync(id);
+        //     if (existingOrder == null)
+        //     {
+        //         return NotFound();
+        //     }
 
-            // Retrieve the updated list of orders
-            var updatedOrders = await _orderRepository.GetOrdersAsync();
-            var updatedOrderDtos = updatedOrders.Select(order => new GetOrderDtos
-            {
-                OrderId = order.OrderId,
-                OrderQuantity = order.OrderQuantity
-            }).ToList();
+        //     // Update the order
+        //     existingOrder.OrderQuantity = orderDto.OrderQuantity;
+        //     await _orderRepository.UpdateOrderAsync(existingOrder);
 
-            // Return the updated list of orders
-            return Ok(updatedOrderDtos);
-        }
+        //     // Retrieve the updated list of orders
+        //     // var updatedOrders = await _orderRepository.GetOrdersAsync();
+        //     var updatedOrderDtos = updatedOrders.Select(order => new GetOrderDtos
+        //     {
+        //         OrderId = order.OrderId,
+        //         OrderQuantity = order.OrderQuantity
+        //     }).ToList();
+
+        //     // Return the updated list of orders
+        //     return Ok(updatedOrderDtos);
+        // }
 
 
 
         [HttpDelete("delete-order/{id}")]
-         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<ActionResult<IEnumerable<GetOrderDtos>>> DeleteOrder(int id)
         {
+            var userId = User.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.NameId)?.Value
+                         ?? User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            if (userId == null)
+            {
+                return Unauthorized("User ID claim not found");
+            }
+
             var existingOrder = await _orderRepository.GetOrderByIdAsync(id);
+
             if (existingOrder == null)
             {
-                return NotFound();
+                return NotFound("Order not found");
+            }
+
+            if (existingOrder.UserId != userId)
+            {
+                return Forbid("You are not authorized to delete this order");
             }
 
             // Delete the order
             await _orderRepository.DeleteOrderAsync(id);
 
-            // Retrieve the remaining orders
-            var remainingOrders = await _orderRepository.GetOrdersAsync();
+            // Retrieve the remaining orders for the user
+            var remainingOrders = await _orderRepository.GetOrdersByUserIdAsync(userId);
             var remainingOrderDtos = remainingOrders.Select(order => new GetOrderDtos
             {
                 OrderId = order.OrderId,
@@ -121,10 +157,19 @@ namespace api.Controllers
         }
 
 
+
         [HttpPost("process-transaction/{orderId}")]
-         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<ActionResult> ProcessTransaction(int orderId)
         {
+            // Lấy UserId từ token
+            var userId = User.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.NameId)?.Value
+                         ?? User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            if (userId == null)
+            {
+                return Unauthorized("User ID claim not found");
+            }
             // Lấy thông tin đơn hàng từ repository
             var order = await _orderRepository.GetOrderByIdAsync(orderId);
             if (order == null)
@@ -149,7 +194,7 @@ namespace api.Controllers
             }
 
             // Nếu chưa có cừu, tạo cừu ngẫu nhiên dựa trên số lượng đơn hàng
-            var sheeps = await GenerateSheepForOrder(order.OrderId, order.OrderQuantity);
+            var sheeps = await GenerateSheepForOrder(order.OrderId, order.OrderQuantity, userId);
 
             // Chuyển đổi danh sách cừu thành DTO để trả về cho client
             var newSheepResponse = sheeps.Select(sheep => new SheepDto
@@ -165,7 +210,7 @@ namespace api.Controllers
 
 
 
-        private async Task<List<Sheep>> GenerateSheepForOrder(int orderId, int quantity)
+        private async Task<List<Sheep>> GenerateSheepForOrder(int orderId, int quantity, string userId)
         {
             var sheeps = new List<Sheep>();
             for (int i = 0; i < quantity; i++)
@@ -178,7 +223,8 @@ namespace api.Controllers
                     MeatWeight = meatWeight,
                     WoolWeight = GetRandomWoolWeight(meatWeight),
                     Time = randomSeconds,
-                    OrderId = orderId
+                    OrderId = orderId,
+                    UserId = userId
                 };
 
                 // Thêm cừu vào cơ sở dữ liệu

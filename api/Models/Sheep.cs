@@ -12,6 +12,7 @@ namespace api.Models
         public string Color { get; set; }
         public double MeatWeight { get; set; }
         public double WoolWeight { get; set; }
+        public string UserId { get; set; }
         public int? OrderId { get; set; } // Khóa ngoại
         public Order Order { get; set; } // Mối quan hệ với Order
     }

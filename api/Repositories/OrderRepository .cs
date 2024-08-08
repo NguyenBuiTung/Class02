@@ -36,10 +36,11 @@ namespace api.Repositories
 
 
 
-        public async Task<IEnumerable<Order>> GetOrdersAsync()
+        public async Task<IEnumerable<Order>> GetOrdersByUserIdAsync(string userId)
         {
-            return await _context.Orders.ToListAsync();
+            return await _context.Orders.Where(o => o.UserId == userId).ToListAsync();
         }
+
         public async Task UpdateOrderAsync(Order order)
         {
             _context.Entry(order).State = EntityState.Modified;
