@@ -1,5 +1,5 @@
 import { Button, InputNumber, Select, Table } from "antd";
-import axios from 'axios';
+import axios from "axios";
 import { useEffect, useState } from "react";
 import {
   ComposedChart,
@@ -82,7 +82,7 @@ export default function ReportTime() {
     setPiechart(dataNew);
   }, [orders]);
   const RADIAN = Math.PI / 180;
-  const COLORS = ["#f0f0f0", "#bfbfbf", "#000"];
+  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
   const renderCustomizedLabel = ({
     cx,
@@ -136,28 +136,36 @@ export default function ReportTime() {
     },
   ];
   const handleExcel = async () => {
-     // Its important to set the 'Content-Type': 'blob' and responseType:'arraybuffer'.
-     const headers = {'Content-Type': 'blob', Authorization: `Bearer ${token}`};
-     const config = {method: 'GET', url: "http://localhost:5218/export-sheep", responseType: 'arraybuffer', headers};
-     
-     try {
-         const response = await axios(config);
-         
-         const outputFilename = `Báo cáo.xls`;
- 
-         // If you want to download file automatically using link attribute.
-         const url = URL.createObjectURL(new Blob([response.data]));
-         const link = document.createElement('a');
-         link.href = url;
-         link.setAttribute('download', outputFilename);
-         document.body.appendChild(link);
-         link.click();
- 
-         // OR you can save/write file locally.
-        //  fs.writeFileSync(outputFilename, response.data);
-     } catch (error) {
-         throw Error(error);
-     }
+    // Its important to set the 'Content-Type': 'blob' and responseType:'arraybuffer'.
+    const headers = {
+      "Content-Type": "blob",
+      Authorization: `Bearer ${token}`,
+    };
+    const config = {
+      method: "GET",
+      url: "http://localhost:5218/export-sheep",
+      responseType: "arraybuffer",
+      headers,
+    };
+
+    try {
+      const response = await axios(config);
+
+      const outputFilename = `Báo cáo.xls`;
+
+      // If you want to download file automatically using link attribute.
+      const url = URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", outputFilename);
+      document.body.appendChild(link);
+      link.click();
+
+      // OR you can save/write file locally.
+      //  fs.writeFileSync(outputFilename, response.data);
+    } catch (error) {
+      throw Error(error);
+    }
   };
 
   return (
@@ -269,7 +277,7 @@ export default function ReportTime() {
               align="left"
               layout="vertical"
               payload={pieChart?.map((entry, index) => ({
-                value: entry.color,
+                value: "cừu " + entry.color,
                 type: "square",
                 color: COLORS[index],
               }))}
