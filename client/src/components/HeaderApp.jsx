@@ -45,7 +45,7 @@ export default function HeaderApp() {
   return (
     <div style={{ width: "100%", textAlign: "end" }}>
       {!loading && <Typography.Text style={{ marginRight: 5 }}>
-        Xin chào <strong>{user.userName}</strong>
+        Xin chào  <strong style={{fontSize:16}}>{user?.userName}</strong>
       </Typography.Text>}
       <Button type="primary" danger onClick={sigout} icon={<LogoutOutlined />}>
         Đăng xuất{" "}

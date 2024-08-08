@@ -125,11 +125,16 @@ export default function SheepList() {
   // };
   // const [sheepList, setSheepList] = useState([]);
   const [currentSheep, setCurrentSheep] = useState(null);
-  const [loadRun, setLoadRun] = useState(false);
+  const [loadRun, setLoadRun] = useState(false);  
+  const [loadingTran, setLoadingTran] = useState({});
   const [progress, setProgress] = useState(0); // For the progress bar
   const [intervalId, setIntervalId] = useState(null); // To manage the interval
   const transition = async (id) => {
     setLoadRun(true);
+    setLoadingTran((prevLoadingTran) => ({
+      ...prevLoadingTran,
+      [id]: true,
+    }));
     setProgress(0); // Reset progress bar
     setCurrentSheep(null); // Clear previous sheep info
     try {
@@ -156,7 +161,11 @@ export default function SheepList() {
           currentIndex++;
         } else {
           clearInterval(interval);
-          setLoading(false);
+          setLoadRun(false);
+          setLoadingTran((prevLoadingTran) => ({
+            ...prevLoadingTran,
+            [id]: false,
+          }));
         }
       }, 1000); // Update every second
 
@@ -165,6 +174,10 @@ export default function SheepList() {
       console.error("Error processing transaction:", error);
       alert("Failed to process transaction");
       setLoadRun(false);
+      setLoadingTran((prevLoadingTran) => ({
+        ...prevLoadingTran,
+        [id]: false,
+      }));
       clearInterval(intervalId);
     }
   };
@@ -177,10 +190,6 @@ export default function SheepList() {
     {
       title: "Id Đơn hàng",
       dataIndex: "orderId",
-      // render: (record) => {
-      //   const time = formatDateTime(record);
-      //   return time;
-      // },
     },
     {
       title: "Số lượng",
@@ -212,6 +221,7 @@ export default function SheepList() {
                 onClick={() => {
                   transition(record.orderId);
                 }}
+                spin={loadingTran[record.orderId]}
                 style={{ color: "blue", fontSize: 20 }}
               />
             </Tooltip>
