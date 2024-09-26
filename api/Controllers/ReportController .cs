@@ -71,7 +71,8 @@ namespace api.Controllers
                     Color = g.Key,
                     Count = g.Count(),
                     TotalMeatWeight = g.Sum(s => s.MeatWeight),
-                    TotalWoolWeight = g.Sum(s => s.WoolWeight)
+                    TotalWoolWeight = g.Sum(s => s.WoolWeight),
+                    TotalTime = g.Sum(s => s.Time),
                 }).ToList();
 
             // Tạo đối tượng chứa kết quả trả về

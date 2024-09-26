@@ -10,8 +10,6 @@ import {
   Legend,
   Bar,
   ResponsiveContainer,
-  Line,
-  Area,
   PieChart,
   Pie,
   Cell,
@@ -71,18 +69,31 @@ export default function ReportTime() {
     setDataChart(newData);
   }, [data]);
   const [pieChart, setPiechart] = useState([]);
+  const [showWeight, setShowWeight] = useState(false);
+  const [showLong, setShowLong] = useState(false);
+  const [showTime, setShowTime] = useState(false);
   useEffect(() => {
     const dataNew = orders?.sheepCountByColor?.map((item) => {
       return {
         color: item?.color,
-        value: item.totalMeatWeight,
+        value: showWeight
+          ? item.totalMeatWeight
+          : showLong
+          ? item.totalWoolWeight
+          : showTime
+          ? item.totalTime
+          : 0, // giá trị mặc định nếu không có gì được chọn
       };
     });
 
     setPiechart(dataNew);
-  }, [orders]);
+  }, [orders, showWeight, showLong, showTime]); //
   const RADIAN = Math.PI / 180;
-  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
+  const colorMapping = {
+    trắng: "#e3d0d0d0", // Màu trắng
+    đen: "#000000", // Màu đen
+    xám: "#808080", // Màu xám
+  };
 
   const renderCustomizedLabel = ({
     cx,
@@ -168,6 +179,25 @@ export default function ReportTime() {
     }
   };
 
+  const handleChart = (value) => {
+    switch (value) {
+      case "weight":
+        setShowWeight(true);
+        setShowLong(false);
+        setShowTime(false);
+        break;
+      case "long":
+        setShowLong(true);
+        setShowWeight(false);
+        setShowTime(false);
+        break;
+      case "speed":
+        setShowTime(true);
+        setShowLong(false);
+        setShowWeight(false);
+        break;
+    }
+  };
   return (
     <>
       <div style={{ margin: "10px 0" }}>
@@ -206,49 +236,54 @@ export default function ReportTime() {
         <Button type="primary" onClick={handleExcel}>
           Xuất Excel
         </Button>
+        <Select
+          onChange={handleChart}
+          style={{ width: 200, marginLeft: 10 }}
+          placeholder="Chọn biểu đồ"
+        >
+          <Select.Option value="weight">Biểu đồ khối lượng</Select.Option>
+          <Select.Option value="speed">Biểu đồ tỷ trọng tốc độ</Select.Option>
+          <Select.Option value="long">Biểu đồ tỷ trọng lông</Select.Option>
+        </Select>
       </div>
-      <div style={{ width: "100%", height: 300 }}>
-        <ResponsiveContainer>
-          <ComposedChart
-            data={dataChart}
-            margin={{
-              top: 20,
-              right: 20,
-              bottom: 20,
-              left: 50,
-            }}
-          >
-            <CartesianGrid stroke="#f5f5f5" />
-            <XAxis
-              dataKey="Màu sắc"
-              scale="auto"
-              label={{
-                value: "Thời gian",
-                position: "insideBottomRight",
-                offset: -20,
+      {showWeight && (
+        <div style={{ width: "100%", height: 300 }}>
+          <ResponsiveContainer>
+            <ComposedChart
+              data={dataChart}
+              margin={{
+                top: 20,
+                right: 20,
+                bottom: 20,
+                left: 50,
               }}
-            />
-            <YAxis
-              tickFormatter={(value) => value.toLocaleString()}
-              label={{
-                value: "KG",
-                angle: 0,
-                position: "insideBottom",
-              }}
-            />
-            <Line type="monotone" dataKey="Thời gian" stroke="#ff7300" />
-            <Area
-              type="monotone"
-              dataKey="Khối lượng lông"
-              fill="#8884d8"
-              stroke="#8884d8"
-            />
-            <Tooltip formatter={(value) => value.toLocaleString()} />
-            <Legend />
-            <Bar barSize={15} dataKey="Trọng lượng" fill="#413ea0" />
-          </ComposedChart>
-        </ResponsiveContainer>
-      </div>
+            >
+              <CartesianGrid stroke="#f5f5f5" />
+              <XAxis
+                dataKey="Màu sắc"
+                scale="auto"
+                label={{
+                  // value: "Thời gian",
+                  position: "insideBottomRight",
+                  offset: -20,
+                }}
+              />
+              <YAxis
+                tickFormatter={(value) => value.toLocaleString()}
+                label={{
+                  value: "KG",
+                  angle: 0,
+                  position: "insideBottom",
+                }}
+              />
+
+              <Tooltip formatter={(value) => value.toLocaleString()} />
+              <Legend />
+              <Bar barSize={15} dataKey="Trọng lượng" fill="#413ea0" />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </div>
+      )}
       <div style={{ width: "100%", height: 300, margin: "20px 0" }}>
         <ResponsiveContainer>
           <PieChart>
@@ -262,24 +297,36 @@ export default function ReportTime() {
               fill="#8884d8"
               dataKey="value"
             >
-              {pieChart?.map((entry, index) => (
-                <Cell
-                  key={`cell-${index}`}
-                  fill={COLORS[index % COLORS.length]}
-                />
-              ))}
+              {pieChart?.map((entry, index) => {
+                return (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={colorMapping[entry.color.toLowerCase()]} // Sử dụng màu hoặc fallback
+                  />
+                );
+              })}
             </Pie>
             <Tooltip
-              formatter={(value) => value.toLocaleString() + " kg trọng lượng"}
+              formatter={(value) => {
+                if (showWeight) {
+                  return `${value.toLocaleString()} kg trọng lượng`; // Hiển thị cho trọng lượng
+                } else if (showLong) {
+                  return `${value.toLocaleString()} kg lông cừu`; // Hiển thị cho chiều dài
+                } else if (showTime) {
+                  return `${value.toLocaleString()} giây`; // Hiển thị cho thời gian
+                } else {
+                  return `${value.toLocaleString()}`; // Mặc định nếu không có gì được chọn
+                }
+              }}
             />
             <Legend
               verticalAlign="middle"
               align="left"
               layout="vertical"
-              payload={pieChart?.map((entry, index) => ({
+              payload={pieChart?.map((entry) => ({
                 value: "cừu " + entry.color,
                 type: "square",
-                color: COLORS[index],
+                color: colorMapping[entry.color], // Sử dụng màu cố định hoặc fallback về màu trong mảng COLORS
               }))}
             />
           </PieChart>

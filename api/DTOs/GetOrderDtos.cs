@@ -9,5 +9,8 @@ namespace api.DTOs
     {
         public int OrderId { get; set; }
         public int OrderQuantity { get; set; }
+        public string StartDate { get; set; }
+        public string? EndDate { get; set; }
+        public string Status { get; set; }
     }
 }

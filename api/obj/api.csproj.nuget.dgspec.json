@@ -93,6 +93,10 @@
             "Swashbuckle.AspNetCore": {
               "target": "Package",
               "version": "[6.4.0, )"
+            },
+            "mailgun_csharp": {
+              "target": "Package",
+              "version": "[0.8.0, )"
             }
           },
           "imports": [

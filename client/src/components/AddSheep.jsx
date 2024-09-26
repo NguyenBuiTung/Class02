@@ -1,8 +1,8 @@
-import { Button, Form, Input, message, Modal } from "antd";
+import { Button, DatePicker, Form, Input, message, Modal } from "antd";
 import { useState } from "react";
 import { PlusCircleOutlined } from "@ant-design/icons";
 import axios from "axios";
-export default function AddSheep({setOrders}) {
+export default function AddSheep({ setOrders }) {
   const [form] = Form.useForm();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState();
@@ -14,11 +14,16 @@ export default function AddSheep({setOrders}) {
     setIsModalOpen(false);
   };
   const onFinish = async (values) => {
+    const data = {
+      ...values,
+      startDate: values["startDate"].format("YYYY-MM-DD HH:mm"),
+    };
+    console.log(data);
     setIsLoading(true);
     try {
       const response = await axios.post(
         `http://localhost:5218/api/Order/create-order`,
-        values,
+        data,
         {
           headers: {
             "Content-Type": "application/json",
@@ -26,6 +31,7 @@ export default function AddSheep({setOrders}) {
           },
         }
       );
+      // console.log(response)
       handleCancel();
       setOrders(response.data);
       setIsLoading(false);
@@ -39,7 +45,12 @@ export default function AddSheep({setOrders}) {
 
   return (
     <div>
-      <Button style={{margin:"10px 0"}} type="primary" onClick={showModal} icon={<PlusCircleOutlined />}>
+      <Button
+        style={{ margin: "10px 0" }}
+        type="primary"
+        onClick={showModal}
+        icon={<PlusCircleOutlined />}
+      >
         Thêm mới
       </Button>
       <Modal
@@ -68,7 +79,18 @@ export default function AddSheep({setOrders}) {
           >
             <Input placeholder="Số lượng" type="number" min="0" />
           </Form.Item>
-
+          <Form.Item
+            label="Thời gian bắt đầu"
+            name="startDate"
+            rules={[
+              {
+                required: true,
+                message: "Vui lòng nhập thời gian",
+              },
+            ]}
+          >
+            <DatePicker format="YYYY-MM-DD HH:mm" showTime />
+          </Form.Item>
           <Form.Item>
             <Button
               type="primary"

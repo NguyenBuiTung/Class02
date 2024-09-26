@@ -9,6 +9,7 @@ namespace api.DTOs
     {
         // public int OrderId { get; set; }
         public int OrderQuantity { get; set; }
+        public string StartDate { get; set; }
         // public List<SheepDto> Sheeps { get; set; }
     }
 }

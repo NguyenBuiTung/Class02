@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
@@ -49,7 +50,10 @@ namespace api.Controllers
             var orderDtos = orders.Select(order => new GetOrderDtos
             {
                 OrderId = order.OrderId,
-                OrderQuantity = order.OrderQuantity
+                OrderQuantity = order.OrderQuantity,
+                StartDate = order.StartDate.ToString("yyyy-MM-dd HH:mm"),
+                EndDate = order.EndDate.ToString("yyyy-MM-dd HH:mm"),
+                Status = order.Status
             }).ToList();
 
             return Ok(orderDtos);
@@ -66,27 +70,40 @@ namespace api.Controllers
                 return Unauthorized("User ID claim not found");
             }
 
-            // Create a new order and associate it with the user
+            // Chuyển đổi chuỗi StartDate thành DateTime với định dạng 'yyyy-MM-dd HH:mm'
+            DateTime startDate;
+            if (!DateTime.TryParseExact(orderDto.StartDate, "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out startDate))
+            {
+                return BadRequest("Invalid date format. Please use 'yyyy-MM-dd HH:mm'.");
+            }
+
+            // Tạo mới Order và gán startDate
             var order = new Order
             {
                 OrderQuantity = orderDto.OrderQuantity,
-                UserId = userId  // Ensure this property exists
+                StartDate = startDate,
+                Status = "Pending", // Gán giá trị DateTime sau khi đã chuyển đổi
+                UserId = userId
             };
 
-            // Add the new order to the database
+            // Thêm đơn hàng mới vào cơ sở dữ liệu
             await _orderRepository.AddOrderAsync(order);
 
-            // Retrieve the updated list of orders for the user
+            // Lấy danh sách đơn hàng cập nhật cho user
             var orders = await _orderRepository.GetOrdersByUserIdAsync(userId);
             var orderDtos = orders.Select(o => new GetOrderDtos
             {
                 OrderId = o.OrderId,
-                OrderQuantity = o.OrderQuantity
+                OrderQuantity = o.OrderQuantity,
+                Status = o.Status,
+                StartDate = o.StartDate.ToString("yyyy-MM-dd HH:mm"),
+                EndDate = o.EndDate.ToString("yyyy-MM-dd HH:mm"),
             }).ToList();
 
-            // Return the updated list of orders
             return Ok(orderDtos);
         }
+
+
 
 
 
@@ -149,7 +166,11 @@ namespace api.Controllers
             var remainingOrderDtos = remainingOrders.Select(order => new GetOrderDtos
             {
                 OrderId = order.OrderId,
-                OrderQuantity = order.OrderQuantity
+                OrderQuantity = order.OrderQuantity,
+                StartDate = order.StartDate.ToString("yyyy-MM-dd HH:mm"),
+                EndDate = order.EndDate.ToString("yyyy-MM-dd HH:mm"),
+                Status = order.Status
+
             }).ToList();
 
             // Return the list of remaining orders
@@ -170,6 +191,7 @@ namespace api.Controllers
             {
                 return Unauthorized("User ID claim not found");
             }
+
             // Lấy thông tin đơn hàng từ repository
             var order = await _orderRepository.GetOrderByIdAsync(orderId);
             if (order == null)
@@ -193,8 +215,20 @@ namespace api.Controllers
                 return Ok(existingSheepResponse);
             }
 
-            // Nếu chưa có cừu, tạo cừu ngẫu nhiên dựa trên số lượng đơn hàng
-            var sheeps = await GenerateSheepForOrder(order.OrderId, order.OrderQuantity, userId);
+            // Bắt đầu đo thời gian giao dịch
+            var startTime = DateTime.Now;
+
+            // Tạo cừu ngẫu nhiên dựa trên số lượng đơn hàng
+            var sheeps = await GenerateSheepForOrder(order.OrderId, order.OrderQuantity, userId, startTime);
+
+            // Cập nhật thời gian kết thúc đơn hàng: lấy thời gian bắt đầu cộng với tổng thời gian ngẫu nhiên
+            var totalDurationInSeconds = sheeps.Sum(s => s.Time);
+            var endTime = startTime.AddSeconds(totalDurationInSeconds);
+
+            // Cập nhật trạng thái và thời gian kết thúc đơn hàng
+            order.Status = "Completed";
+            order.EndDate = endTime;
+            await _orderRepository.UpdateOrderAsync(order);
 
             // Chuyển đổi danh sách cừu thành DTO để trả về cho client
             var newSheepResponse = sheeps.Select(sheep => new SheepDto
@@ -208,21 +242,23 @@ namespace api.Controllers
             return Ok(newSheepResponse);
         }
 
-
-
-        private async Task<List<Sheep>> GenerateSheepForOrder(int orderId, int quantity, string userId)
+        private async Task<List<Sheep>> GenerateSheepForOrder(int orderId, int quantity, string userId, DateTime startTime)
         {
             var sheeps = new List<Sheep>();
+
             for (int i = 0; i < quantity; i++)
             {
                 var meatWeight = GetRandomMeatWeight();
-                var randomSeconds = _random.Next(1, 6);
+
+                // Giả sử mỗi lần tạo cừu mất ngẫu nhiên từ 1-5 giây
+                var individualDurationInSeconds = _random.Next(1, 6);
+
                 var sheep = new Sheep
                 {
                     Color = GetRandomColor(),
                     MeatWeight = meatWeight,
                     WoolWeight = GetRandomWoolWeight(meatWeight),
-                    Time = randomSeconds,
+                    Time = individualDurationInSeconds, // Thời gian riêng cho từng con cừu
                     OrderId = orderId,
                     UserId = userId
                 };
@@ -233,6 +269,9 @@ namespace api.Controllers
             }
             return sheeps;
         }
+
+
+
 
         private string GetRandomColor()
         {

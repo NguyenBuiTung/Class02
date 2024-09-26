@@ -2,6 +2,7 @@ import axios from "axios";
 import { useState } from "react";
 import { useEffect } from "react";
 import {
+  Badge,
   Col,
   Flex,
   Form,
@@ -70,6 +71,9 @@ export default function SheepList() {
         key: index,
         orderId: items.orderId,
         orderQuantity: items?.orderQuantity,
+        startDate: items?.startDate,
+        endDate: items?.endDate,
+        status: items?.status
       };
     });
     setData(dataNew);
@@ -167,7 +171,7 @@ export default function SheepList() {
             [id]: false,
           }));
         }
-      }, 1000); // Update every second
+      }, 1000); 
 
       setIntervalId(interval);
     } catch (error) {
@@ -197,6 +201,24 @@ export default function SheepList() {
       editable: true,
     },
     {
+      title: "Thời gian bắt đầu",
+      dataIndex: "startDate",
+      editable: true,
+    },
+    {
+      title: "Thời gian kết thúc",
+      dataIndex: "endDate",
+      editable: true,
+    },
+    {
+      title: "Trạng thái",
+      dataIndex: "status",
+      editable: true,
+      render : (record)=>(
+        record==="Completed" ?  <Badge status="success" text="Đã giao dịch" /> :  <Badge status="processing" text="Đang chờ" />
+      )
+    },
+    {
       title: "Thao tác",
       dataIndex: "operation",
       align: "center",
@@ -217,14 +239,30 @@ export default function SheepList() {
               </Popconfirm>
             </Tooltip>
             <Tooltip placement="top" title="Giao dịch">
-              <SyncOutlined
-                onClick={() => {
+            <span
+              style={{
+                fontSize: 20,
+                cursor:
+                  (record.status !== "Completed") 
+                    ? "pointer"
+                    : "not-allowed",
+                opacity:
+                  (record.status !== "Completed")
+                    ? 1
+                    : 0.5,
+              }}
+              onClick={() => {
+                if (
+                  (record.status !== "Completed") 
+                ) {
                   transition(record.orderId);
-                }}
-                spin={loadingTran[record.orderId]}
-                style={{ color: "blue", fontSize: 20 }}
-              />
-            </Tooltip>
+                }
+              }}
+            >
+              <SyncOutlined  spin={loadingTran[record.orderId]}/>
+            </span>
+          </Tooltip>
+            
           </Flex>
         );
       },
